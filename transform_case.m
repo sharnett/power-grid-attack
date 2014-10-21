@@ -9,6 +9,7 @@ function result = transform_case(mpc)
     QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 
 mpc = loadcase(mpc);
+mpc.gen = sortrows(mpc.gen, 1);
 % turn off susceptances, tap ratio, phase shift
 % turn on all branches and generators
 mpc.branch(:, [BR_B, TAP, SHIFT]) = 0;
@@ -23,6 +24,9 @@ mistake_buses = setdiff(gen_buses(:, BUS_I), mpc.gen(:, GEN_BUS));
 mpc.bus(mistake_buses, BUS_TYPE) = 1;
 gen_bus_mask = mpc.bus(:, BUS_TYPE) > 1;
 gen_buses = mpc.bus(gen_bus_mask, :);
+
+% TODO! this is causing problems on some of the Polish cases
+% remove from generator list if bus type is 1
 
 % ASSUMES GENS OCCUR IN SAME ORDER AS BUSES!
 % when a generator bus also has demand, adjust the generator output

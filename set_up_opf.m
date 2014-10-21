@@ -1,4 +1,4 @@
-function mpc = set_up_opf(mpc),
+function [mpc, success] = set_up_opf(mpc)
 %%
 [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, VA, ...
     BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
@@ -51,11 +51,21 @@ mpc.bus(:, 13) = v_min;
 % this should do basically nothing
 alg = 545; % try 545 (scpdipmopf) or 550 (tralmopf)
 opt = mpoption('OUT_ALL', 0, 'VERBOSE', 0, 'OPF_ALG', alg);
-%opt = mpoption('OUT_ALL', 0, 'VERBOSE', 0);
 mpc2 = runopf(mpc, opt);
-if (mpc2.success < 1), disp('opf failed to converge'); end
-disp('difference between pf and opf');
-disp(norm(mpc.gen(:, 2:3) - mpc2.gen(:, 2:3)));
+success = 1;
+if (mpc2.success < 1),
+    disp('opf failed to converge');
+    success = 0;
+    return;
+end
+diff = norm(mpc.gen(:, 2:3) - mpc2.gen(:, 2:3));
+tol = 1e-3;
+if diff > tol,
+   disp('ERROR: difference between opf and pf larger than tolerance');
+   fprintf('%f %f', diff, tol);
+   success = 0;
+   return;
+end
 
 %%
 mpc2.gencost(1:n, 6) = -2*mpc2.gen(:, 2);
