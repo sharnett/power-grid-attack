@@ -1,12 +1,13 @@
-cases = {'case9.m', 'case14.m', 'case57.m', 'case118.m', 'case300.m', ...
+cases = {'case9.m', 'case14.m', 'case57.m', 'case118.m', ...
          'case2383wp.m', 'case3120sp.m'};
 attack_levels = [1.1, 2.0, 3.0, 5.0];
 Ks = [2, 3, 4, 5, 8];
-methods = {'top_k', 'max_mismatch'};
+%methods = {'top_k', 'max_mismatch'};
 
-cases = {'case9.m', 'case14.m'};
-attack_levels = [1.1, 2.0];
-Ks = [2, 3];
+%cases = {'case9.m', 'case14.m'};
+%attack_levels = [1.1, 2.0];
+%Ks = [2, 3];
+methods = {'max_mismatch'};
 
 logfilename = sprintf('log_%s.txt', datestr(now, 'yyyymmdd_HHMMSS'));
 logfile = fopen(logfilename, 'w');
