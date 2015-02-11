@@ -11,15 +11,15 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
 % opf_obj_mult - the amount of OPF objective to add into the attack obj
 
     MAX_ITER = 15;
-    F_TOL = 1e-6;
-    OVERSHOOT_ITER = 5;
+    F_TOL = 1e-8;
+    OVERSHOOT_ITER = 0;
     OVERSHOOT_MULT = 1.4;
 
     if nargin < 2,
         verbose = 1;
     end
 
-    mpc = loadcase2(m.mpc);
+    mpc = loadcase3(m.mpc);
     n_lines = size(mpc.branch, 1);
     
     function [f, f_opf] = fun(gamma)

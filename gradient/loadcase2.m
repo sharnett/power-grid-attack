@@ -1,6 +1,5 @@
 function mpc = loadcase2(mpc)
 
-addpath('/Users/srharnett/Dropbox/power/power-grid-attack/');
 mpc = loadcase(mpc);
 mpc = dedupe_lines(mpc);
 mpc = dedupe_gens(mpc);

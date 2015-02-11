@@ -64,7 +64,8 @@ for i = 1:max_iter,
     end
     w = ones(n_lines, 1);
     w(top_k_lines) = attack_level;
-    z(i+1, :) = .5*(w+z(i, :)');
+    %z(i+1, :) = .5*(w+z(i, :)');
+    z(i+1, :) = (w+i*z(i, :)')/(i+1);
     last_repeated = check_convergence(z, i+1, tol);
     if last_repeated,
         break;

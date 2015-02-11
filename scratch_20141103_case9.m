@@ -133,7 +133,7 @@ end
 
 %% lines 7 and 8, i.e. 8->2 and 8->9, look good
 % consider them individually
-line1 = 4;
+line1 = 7;
 
 for attack_level = [1.1, 2, 2.5, 2.7, 2.9, 3, 5, 5.9],
     z = ones(1, n_lines);
@@ -154,7 +154,7 @@ end
 
 %% line 7 hits a voltage constraint with attack of 2.9
 
-attack_level = 20;
+attack_level = 8;
 z = ones(1, n_lines);
 z(line1) = attack_level;
 result = attack(mpc, z(i, :)');
