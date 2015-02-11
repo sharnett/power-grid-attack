@@ -1,4 +1,4 @@
-function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
+function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
 
 % m is a struct with the following fields:
 %
@@ -10,14 +10,12 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
 % K - the max number of lines at full attack
 % opf_obj_mult - the amount of OPF objective to add into the attack obj
 
-    MAX_ITER = 15;
-    F_TOL = 1e-8;
-    OVERSHOOT_ITER = 0;
-    OVERSHOOT_MULT = 1.4;
-
-    if nargin < 2,
-        verbose = 1;
-    end
+    if nargin < 2, opts = []; end;
+    if (~isfield(opts, 'max_iter')), opts.max_iter = 15; end;
+    if (~isfield(opts, 'f_tol')), opts.f_tol = 1e-6; end;
+    if (~isfield(opts, 'overshoot_iter')), opts.overshoot_iter = 0; end;
+    if (~isfield(opts, 'overshoot_mult')), opts.overshoot_mult = 1; end;
+    if (~isfield(opts, 'verbose')), opts.verbose = 1; end;
 
     mpc = loadcase3(m.mpc);
     n_lines = size(mpc.branch, 1);
@@ -32,13 +30,18 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
     function g = grad(gamma0)
         e = 1e-6;
         f0 = fun(gamma0);
-        g = zeros(n_lines, 1);
-        for line = m.subset,
+        n = length(m.subset);
+        g0 = zeros(n, 1);
+        parfor i=1:n,
+            line = m.subset(i);
             gamma = gamma0;
             gamma(line) = gamma(line) + e;
-            f = fun(gamma);
-            g(line) = (f - f0)/e;
+            %f = fun(gamma);
+            f = fun3(gamma, mpc, n_lines, m)
+            g0(i) = (f - f0)/e;
         end
+        g = zeros(n_lines, 1);
+        g(m.subset) = g0;
     end
 
     params.outputflag = 0;
@@ -68,7 +71,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
         gamma_k(m.subset) = m.initial_guess;
     end
     
-    if (verbose),
+    if (opts.verbose),
         [f_k, f_opf] = fun(gamma_k);
         nz = find(gamma_k);
         disp([0 f_k; nan f_opf; nz gamma_k(nz)]');
@@ -81,13 +84,13 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
         p_k = compute_p(gamma_k);
         alpha_k = compute_alpha(gamma_k, p_k);
         % overshoot first several iterations to help with zig-zag
-        if (k <= OVERSHOOT_ITER),
-            alpha_k = min([OVERSHOOT_MULT*alpha_k 1]);
+        if (k <= opts.overshoot_iter),
+            alpha_k = min([opts.overshoot_mult*alpha_k 1]);
         end
         gamma_k = gamma_k + alpha_k*p_k;
         [f_k, f_opf] = fun(gamma_k);
         
-        if (verbose),
+        if (opts.verbose),
             nz = find(gamma_k > 1e-3);
             disp([k f_k; alpha_k f_opf; nz gamma_k(nz)]');
         end
@@ -95,7 +98,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, verbose)
         k = k+1;
         improvement = (f_k-f_old)/max([abs(f_k) abs(f_old) 1]);
         f_old = f_k;
-        if (k >= MAX_ITER || improvement < F_TOL)
+        if (k >= opts.max_iter || improvement < opts.f_tol)
             converged = 1;
         end
     end
