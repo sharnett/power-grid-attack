@@ -77,11 +77,11 @@ mpc = mpc2;
 %%
 % Let's do something with the voltage magnitude constraints here
 % Force the generators to be within 1% of their usual voltage
-%buffer = .01;
-%gens = mpc.bus(:, 2) > 1;
-%v_gens = mpc.bus(gens, 8);
-%mpc.bus(gens, 12) = (1+buffer)*v_gens;
-%mpc.bus(gens, 13) = (1-buffer)*v_gens;
+buffer = .01;
+gens = mpc.bus(:, 2) > 1;
+v_gens = mpc.bus(gens, 8);
+mpc.bus(gens, 12) = (1+buffer)*v_gens;
+mpc.bus(gens, 13) = (1-buffer)*v_gens;
 
 %%
 % As an alternative to the above, what if we made these equality

@@ -32,12 +32,11 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
         f0 = fun(gamma0);
         n = length(m.subset);
         g0 = zeros(n, 1);
-        parfor i=1:n,
+        for i=1:n,
             line = m.subset(i);
             gamma = gamma0;
             gamma(line) = gamma(line) + e;
-            %f = fun(gamma);
-            f = fun3(gamma, mpc, n_lines, m)
+            f = fun(gamma);
             g0(i) = (f - f0)/e;
         end
         g = zeros(n_lines, 1);
@@ -65,8 +64,11 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
     end
 
     function pprint(k, f, f_opf, alpha, gamma)
+        [sorted, idx] = sort(gamma, 'descend');
+        nz = find(sorted > 1e-3);
+        attack = [idx(nz) sorted(nz)]';
         fprintf('%2d obj=%g opf_obj=%g step=%.2f [', k, f, f_opf, alpha);
-        fprintf('%d %.2f; ', gamma)
+        fprintf('%d %.2f; ', attack)
         fprintf(']\n')
     end
 
@@ -79,8 +81,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
     
     if (opts.verbose),
         [f_k, f_opf] = fun(gamma_k);
-        nz = find(gamma_k);
-        pprint(0, f_k, f_opf, nan, [])
+        pprint(0, f_k, f_opf, nan, gamma_k)
     end
         
     k = 1;
@@ -96,11 +97,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
         gamma_k = gamma_k + alpha_k*p_k;
         [f_k, f_opf] = fun(gamma_k);
         
-        if (opts.verbose),
-            [sorted, idx] = sort(gamma_k, 'descend');
-            nz = find(sorted > 1e-3);
-            pprint(k, f_k, f_opf, alpha_k, [idx(nz) sorted(nz)]');
-        end
+        if (opts.verbose), pprint(k, f_k, f_opf, alpha_k, gamma_k); end
         
         k = k+1;
         improvement = (f_k-f_old)/max([abs(f_k) abs(f_old) 1]);
