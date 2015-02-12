@@ -64,6 +64,12 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
     	fun_evals = output.funcCount;
     end
 
+    function pprint(k, f, f_opf, alpha, gamma)
+        fprintf('%2d obj=%g opf_obj=%g step=%.2f [', k, f, f_opf, alpha);
+        fprintf('%d %.2f; ', gamma)
+        fprintf(']\n')
+    end
+
     %TODO: tidy this up
     
     gamma_k = zeros(n_lines, 1);
@@ -74,7 +80,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
     if (opts.verbose),
         [f_k, f_opf] = fun(gamma_k);
         nz = find(gamma_k);
-        disp([0 f_k; nan f_opf; nz gamma_k(nz)]');
+        pprint(0, f_k, f_opf, nan, [])
     end
         
     k = 1;
@@ -83,7 +89,7 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
     while (~converged),
         p_k = compute_p(gamma_k);
         alpha_k = compute_alpha(gamma_k, p_k);
-        % overshoot first several iterations to help with zig-zag
+        % overshoot initial iterations to help with zig-zag
         if (k <= opts.overshoot_iter),
             alpha_k = min([opts.overshoot_mult*alpha_k 1]);
         end
@@ -91,8 +97,9 @@ function [gamma_opt, val, val_opf] = fw_attack_20150124(m, opts)
         [f_k, f_opf] = fun(gamma_k);
         
         if (opts.verbose),
-            nz = find(gamma_k > 1e-3);
-            disp([k f_k; alpha_k f_opf; nz gamma_k(nz)]');
+            [sorted, idx] = sort(gamma_k, 'descend');
+            nz = find(sorted > 1e-3);
+            pprint(k, f_k, f_opf, alpha_k, [idx(nz) sorted(nz)]');
         end
         
         k = k+1;
