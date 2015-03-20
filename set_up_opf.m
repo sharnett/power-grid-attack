@@ -25,8 +25,8 @@ mpc.gen(:, [PMIN QMIN]) = -bound;
 % of the unattacked tree
 
 n = size(mpc.gen, 1);
-original_p = mpc.gen(:, 2);
-original_q = mpc.gen(:, 3);
+original_p = mpc.gen(:, PG);
+original_q = mpc.gen(:, QG);
 
 mpc.gencost = zeros(2*n, 7);
 mpc.gencost(:, 1) = 2; % polynomial type cost function
@@ -44,11 +44,12 @@ mpc.gencost((n+1):2*n, 7) = original_q.^2;
 
 v_min = .7;
 v_max = 1.25;
-mpc.bus(:, 12) = v_max;
-mpc.bus(:, 13) = v_min;
+mpc.bus(:, VMAX) = v_max;
+mpc.bus(:, VMIN) = v_min;
 
 %%
 % this should do basically nothing
+%alg = 550; % try 545 (scpdipmopf) or 550 (tralmopf)
 alg = 545; % try 545 (scpdipmopf) or 550 (tralmopf)
 opt = mpoption('OUT_ALL', 0, 'VERBOSE', 0, 'OPF_ALG', alg);
 mpc2 = runopf(mpc, opt);
@@ -58,8 +59,8 @@ if (mpc2.success < 1),
     success = 0;
     return;
 end
-diff = norm(mpc.gen(:, 2:3) - mpc2.gen(:, 2:3));
-tol = 1e-3;
+diff = norm(mpc.gen(:, [PG QG]) - mpc2.gen(:, [PG QG]), inf);
+tol = 2e-3;
 if diff > tol,
    disp('ERROR: difference between opf and pf larger than tolerance');
    fprintf('%f %f', diff, tol);
@@ -68,25 +69,25 @@ if diff > tol,
 end
 
 %%
-mpc2.gencost(1:n, 6) = -2*mpc2.gen(:, 2);
-mpc2.gencost(1:n, 7) = mpc2.gen(:, 2).^2;
-mpc2.gencost((n+1):2*n, 6) = -2*mpc2.gen(:, 3);
-mpc2.gencost((n+1):2*n, 7) = mpc2.gen(:, 3).^2;
+mpc2.gencost(1:n, 6) = -2*mpc2.gen(:, PG);
+mpc2.gencost(1:n, 7) = mpc2.gen(:, PG).^2;
+mpc2.gencost((n+1):2*n, 6) = -2*mpc2.gen(:, QG);
+mpc2.gencost((n+1):2*n, 7) = mpc2.gen(:, QG).^2;
 mpc = mpc2;
 
 %%
 % Let's do something with the voltage magnitude constraints here
 % Force the generators to be within 1% of their usual voltage
 buffer = .01;
-gens = mpc.bus(:, 2) > 1;
-v_gens = mpc.bus(gens, 8);
-mpc.bus(gens, 12) = (1+buffer)*v_gens;
-mpc.bus(gens, 13) = (1-buffer)*v_gens;
+gens = mpc.bus(:, BUS_TYPE) > 1;
+v_gens = mpc.bus(gens, VM);
+mpc.bus(gens, VMAX) = (1+buffer)*v_gens;
+mpc.bus(gens, VMIN) = (1-buffer)*v_gens;
 
 %%
 % As an alternative to the above, what if we made these equality
 % constraints?
-%gens = mpc.bus(:, 2) > 1;
-%v_gens = mpc.bus(gens, 8);
-%mpc.bus(gens, 12) = v_gens;
-%mpc.bus(gens, 13) = v_gens;
+%gens = mpc.bus(:, BUS_TYPE) > 1;
+%v_gens = mpc.bus(gens, VM);
+%mpc.bus(gens, VMAX) = v_gens;
+%mpc.bus(gens, VMIN) = v_gens;
