@@ -49,8 +49,8 @@ mpc.bus(:, VMIN) = v_min;
 
 %%
 % this should do basically nothing
-%alg = 550; % try 545 (scpdipmopf) or 550 (tralmopf)
-alg = 545; % try 545 (scpdipmopf) or 550 (tralmopf)
+alg = 550; % try 545 (scpdipmopf) or 550 (tralmopf)
+%alg = 545; % try 545 (scpdipmopf) or 550 (tralmopf)
 opt = mpoption('OUT_ALL', 0, 'VERBOSE', 0, 'OPF_ALG', alg);
 mpc2 = runopf(mpc, opt);
 success = 1;
