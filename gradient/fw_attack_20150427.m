@@ -8,7 +8,6 @@ function [gamma_opt, val] = fw_attack_20150427(m, opts)
 % Lnorm - one of {inf, 1, 2}
 % gamma_max - the maximum attack per line
 % K - the max number of lines at full attack
-% opf_obj_mult - the amount of OPF objective to add into the attack obj
 
     if nargin < 2, opts = []; end;
     if (~isfield(opts, 'max_iter')), opts.max_iter = 15; end;
