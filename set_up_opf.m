@@ -42,8 +42,8 @@ mpc.gencost((n+1):2*n, 7) = original_q.^2;
 %%
 % Allow the voltages to vary between .75 and 1.25 or something like that
 
-v_min = .7;
-v_max = 1.25;
+v_min = .5;
+v_max = 1.5;
 mpc.bus(:, VMAX) = v_max;
 mpc.bus(:, VMIN) = v_min;
 
