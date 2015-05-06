@@ -32,16 +32,19 @@ for a=attacks',
     g(a) = m.gamma_max;
     
     lastwarn('', '');
-    result = attack(mpc, o+g);
+    [result, success] = attack(mpc, o+g);
     [~, msgidlast] = lastwarn;
     
     lastwarn('', '');
     if (strcmp(msgidlast, sing_wrn)),
-        result = attack(mpc, o+g, 550);
+        [result, success] = attack(mpc, o+g, 'tralm');
     end
     [~, msgidlast] = lastwarn;
     if (strcmp(msgidlast, sing_wrn)),
         disp('singular even with trust region');
+    end
+    if (~success),
+        disp('opf after attack failed to converge');
     end
     
     f = objective(result, m.obj_type, m.Lnorm);
