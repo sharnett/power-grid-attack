@@ -33,6 +33,9 @@ function [x_opt, f_opt, x_path] = fw_20150423(fun, grad, A, rhs, x0, opts)
     end;
     if (~isfield(opts, 'avg_p')), opts.avg_p = 0; end;
     if (~isfield(opts, 'verbose')), opts.verbose = 0; end;
+    if (~isfield(opts, 'runtime_diagnostics')),
+        opts.runtime_diagnostics = 0;
+    end;
 
     params.outputflag = 0;
     model.A = A;
@@ -94,21 +97,25 @@ function [x_opt, f_opt, x_path] = fw_20150423(fun, grad, A, rhs, x0, opts)
     converged = 0;
     p_old = zeros(size(x0));
     x_k = x0;
-    x_path = [x0];
+    x_path = x0;
     while (~converged),
         k = k+1;
-        [p_k, g_k] = compute_p(x_k);
+        tic; [p_k, g_k] = compute_p(x_k);
+        time_p = toc;
         if (opts.avg_p)
             p_k = .5*(p_old+p_k);
             p_old = p_k;
         end
-        alpha_k = compute_alpha(x_k, p_k, g_k);
+        tic; [alpha_k, fun_evals] = compute_alpha(x_k, p_k, g_k);
+        time_alpha = toc;
         x_k = x_k + alpha_k*p_k;
         x_path = [x_path x_k];
         f_k = fun(x_k);
         
         if (opts.verbose), pprint(k, f_k, alpha_k, x_k); end
-
+        if (opts.runtime_diagnostics),
+            fprintf('%2d %d %.1f %.1f\n', k, fun_evals, time_alpha, time_p);
+        end
         improvement = (f_old-f_k)/max([abs(f_k) abs(f_old) 1]);
         if (k >= opts.max_iter || improvement < opts.f_tol)
             converged = 1;
