@@ -31,7 +31,6 @@ function [x_opt, f_opt, x_path] = fw_20150423(fun, grad, A, rhs, x0, opts)
     if (~isfield(opts, 'linesearch_method')),
         opts.linesearch_method = 'backtracking';
     end;
-    if (~isfield(opts, 'avg_p')), opts.avg_p = 0; end;
     if (~isfield(opts, 'verbose')), opts.verbose = 0; end;
     if (~isfield(opts, 'runtime_diagnostics')),
         opts.runtime_diagnostics = 0;
@@ -95,17 +94,12 @@ function [x_opt, f_opt, x_path] = fw_20150423(fun, grad, A, rhs, x0, opts)
     f_old = fun(x0);
     if (opts.verbose), pprint(k, f_old, nan, x0); end
     converged = 0;
-    p_old = zeros(size(x0));
     x_k = x0;
     x_path = x0;
     while (~converged),
         k = k+1;
         tic; [p_k, g_k] = compute_p(x_k);
         time_p = toc;
-        if (opts.avg_p)
-            p_k = .5*(p_old+p_k);
-            p_old = p_k;
-        end
         tic; [alpha_k, fun_evals] = compute_alpha(x_k, p_k, g_k);
         time_alpha = toc;
         x_k = x_k + alpha_k*p_k;
